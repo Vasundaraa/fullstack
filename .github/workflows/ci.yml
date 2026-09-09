@@ -1,26 +1,19 @@
-name: CI Pipeline
+name: CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Docker Images
-        run: docker compose build
-
-      - name: Start Containers
-        run: docker compose up -d
-
-      - name: Check Containers
-        run: docker compose ps
-
-      - name: Stop Containers
-        run: docker compose down
+      - name: Deploy Application
+        run: docker compose up -d --build
